@@ -56,7 +56,7 @@ resource "aws_subnet" "cloudx_private_db_subnets" {
   }
 }
 
-#IGW
+#CREATING IGW
 resource "aws_internet_gateway" "cloudx_igw" {
   vpc_id = aws_vpc.cloudx_vpc.id
   tags = {
@@ -65,7 +65,7 @@ resource "aws_internet_gateway" "cloudx_igw" {
 }
 
 ###ROUTE TABLES###
-#Creating RT to Internet via IGW for PUBLIC Layer for every AZ
+#Creating RT to bind IGW with the Public subnets
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.cloudx_vpc.id
   route {
@@ -76,9 +76,25 @@ resource "aws_route_table" "public_rt" {
     Name = "public_rt"
   }
 }
-#ASSOTIATING
+
+#ASSOTIATING RT WITH PUBLIC SUBNETS
 resource "aws_route_table_association" "public_rt" {
   count          = length(aws_subnet.cloudx_public_subnets)
   subnet_id      = element(aws_subnet.cloudx_public_subnets.*.id, count.index)
   route_table_id = aws_route_table.public_rt.id
+}
+
+#Creating RT to PRIVATE SUBNETS
+resource "aws_route_table" "private_rt" {
+  vpc_id = aws_vpc.cloudx_vpc.id
+  tags = {
+    Name = "private_rt"
+  }
+}
+
+#ASSOTIATING RT WITH PRIVATE SUBNETS
+resource "aws_route_table_association" "private_rt" {
+  count          = length(aws_subnet.cloudx_private_subnets)
+  subnet_id      = element(aws_subnet.cloudx_private_subnets.*.id, count.index)
+  route_table_id = aws_route_table.private_rt.id
 }
