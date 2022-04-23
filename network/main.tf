@@ -7,7 +7,7 @@ provider "aws" {
 data "aws_availability_zones" "available" {
   filter {
     name   = "zone-name"
-    values = ["eu-west-1a", "eu-west-1b", "eu-west-1b"]
+    values = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
   }
 }
 
@@ -54,4 +54,31 @@ resource "aws_subnet" "cloudx_private_db_subnets" {
   tags = {
     Name = join(" in ", ["private_db", element(data.aws_availability_zones.available.names, count.index)])
   }
+}
+
+#IGW
+resource "aws_internet_gateway" "cloudx_igw" {
+  vpc_id = aws_vpc.cloudx_vpc.id
+  tags = {
+    Name = "cloudx_igw"
+  }
+}
+
+###ROUTE TABLES###
+#Creating RT to Internet via IGW for PUBLIC Layer for every AZ
+resource "aws_route_table" "public_rt" {
+  vpc_id = aws_vpc.cloudx_vpc.id
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.cloudx_igw.id
+  }
+  tags = {
+    Name = "public_rt"
+  }
+}
+#ASSOTIATING
+resource "aws_route_table_association" "public_rt" {
+  count          = length(aws_subnet.cloudx_public_subnets)
+  subnet_id      = element(aws_subnet.cloudx_public_subnets.*.id, count.index)
+  route_table_id = aws_route_table.public_rt.id
 }
