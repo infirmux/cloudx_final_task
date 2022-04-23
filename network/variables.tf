@@ -8,7 +8,7 @@ variable "vpc_cidr" {
 
 variable "subnet_public_cidrs" {
   type    = list(string)
-  default = ["10.10.1.0/24", "110.10.2.0/24", "10.10.3.0/24"]
+  default = ["10.10.1.0/24", "10.10.2.0/24", "10.10.3.0/24"]
 }
 variable "subnet_private_cidrs" {
   type    = list(string)
