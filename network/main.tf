@@ -7,7 +7,7 @@ provider "aws" {
 data "aws_availability_zones" "available" {
   filter {
     name   = "zone-name"
-    values = ["us-west-1a", "us-west-1b", "us-west-1b"]
+    values = ["eu-west-1a", "eu-west-1b", "eu-west-1b"]
   }
 }
 
