@@ -8,7 +8,7 @@ provider "aws" {
 
 #SUBNET GROUP
 resource "aws_db_subnet_group" "ghost" {
-subnet_ids            = [for s in module.network.cloudx_private_db_subnets_id: s]
+  subnet_ids = [for s in module.network.cloudx_private_db_subnets_id: s]
 }
 
 #DB INSTANCE
@@ -28,7 +28,13 @@ subnet_ids            = [for s in module.network.cloudx_private_db_subnets_id: s
 #}
 
 ###SSH KEYPAIR
-
+#
+#
+#
+#
+#
+#
+#
 
 ###IAM
 #POLICY
@@ -118,7 +124,6 @@ resource "aws_lb" "cloudx_alb" {
   load_balancer_type = "application"
   security_groups    = [module.network.cloudx_sg_alb_id]
   subnets            = [for s in module.network.cloudx_public_subnets_id: s]
-  enable_deletion_protection = true
 }
 
 resource "aws_lb_target_group" "ghost-ec2" {
@@ -136,7 +141,7 @@ resource "aws_lb_target_group" "ghost-fargate" {
 }
 
 
-resource "aws_lb_listener" "front_end" {
+resource "aws_lb_listener" "cloudx_lb_listener" {
   load_balancer_arn = aws_lb.cloudx_alb.arn
   port              = "80"
   protocol          = "HTTP"
