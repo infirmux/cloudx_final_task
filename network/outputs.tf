@@ -15,8 +15,17 @@ output "cloudx_public_subnets_id" {
 output "cloudx_private_subnets_id" {
   value = aws_subnet.cloudx_private_subnets.*.id
 }
+
 output "cloudx_private_db_subnets_id" {
   value = aws_subnet.cloudx_private_db_subnets.*.id
+}
+
+output "cloudx_sg_efs_id" {
+  value = aws_security_group.efs.id
+}
+
+output "cloudx_sg_alb_id" {
+  value = aws_security_group.alb.id
 }
 
 output "sg_mysql_name" {
