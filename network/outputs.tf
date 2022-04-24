@@ -24,6 +24,10 @@ output "cloudx_sg_efs_id" {
   value = aws_security_group.efs.id
 }
 
+output "cloudx_sg_alb_id" {
+  value = aws_security_group.alb.id
+}
+
 output "sg_mysql_name" {
   value = aws_security_group.mysql.name
 }
