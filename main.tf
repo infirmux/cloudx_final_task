@@ -7,9 +7,13 @@ provider "aws" {
 }
 
 #SUBNET GROUP
-#resource "aws_db_subnet_group" "ghost" {
-#  subnet_ids = [for s in module.network.cloudx_private_db_subnets_id: s]
-#}
+resource "aws_db_subnet_group" "ghost" {
+  name = "ghost_db_subnet_group"
+  subnet_ids = [for s in module.network.cloudx_private_db_subnets_id: s]
+  tags = {
+    Project = "cloudx_final_task"
+  }
+}
 
 #DB INSTANCE
 #resource "aws_db_instance" "default" {
@@ -66,6 +70,9 @@ resource "aws_iam_policy" "ghost_app_policy" {
       },
     ]
   })
+  tags = {
+    Project = "cloudx_final_task"
+  }
 }
 
 ###IAM
@@ -88,11 +95,17 @@ resource "aws_iam_role" "cloudx_policy" {
   ]
 }
 EOF
+  tags = {
+    Project = "cloudx_final_task"
+  }
 }
 
 resource "aws_iam_instance_profile" "cloudx_profile" {
   name = "cloudx_profile"
   role = aws_iam_role.cloudx_policy.name
+  tags = {
+    Project = "cloudx_final_task"
+  }
 }
 
 resource "aws_iam_role_policy" "cloudx_role_policy" {
@@ -106,6 +119,7 @@ resource "aws_efs_file_system" "ghost_content" {
   creation_token = "ghost_content"
   tags = {
     Name = "ghost_content"
+    Project = "cloudx_final_task"
   }
 }
 #MOUNT TARGETS
