@@ -20,6 +20,10 @@ output "cloudx_private_db_subnets_id" {
   value = aws_subnet.cloudx_private_db_subnets.*.id
 }
 
+output "cloudx_sg_ec2pool_id" {
+  value = aws_security_group.ec2_pool.id
+}
+
 output "cloudx_sg_efs_id" {
   value = aws_security_group.efs.id
 }
@@ -29,5 +33,5 @@ output "cloudx_sg_alb_id" {
 }
 
 output "sg_mysql_name" {
-  value = aws_security_group.mysql.name
+  value = aws_security_group.mysql.vpc_id
 }

@@ -64,6 +64,15 @@ resource "aws_internet_gateway" "cloudx_igw" {
   }
 }
 
+#Creating EIP's for NAT
+resource "aws_eip" "cloudx_eip" {
+}
+#Creating NAT gateways for every AZ
+resource "aws_nat_gateway" "cloudx_nat_gw" {
+  allocation_id = aws_eip.cloudx_eip.id
+  subnet_id     = element(aws_subnet.cloudx_public_subnets.*.id, 0)
+}
+
 ###ROUTE TABLES###
 #Creating RT to bind IGW with the Public subnets
 resource "aws_route_table" "public_rt" {
@@ -87,6 +96,10 @@ resource "aws_route_table_association" "public_rt" {
 #Creating RT to PRIVATE SUBNETS
 resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.cloudx_vpc.id
+    route {
+      cidr_block     = "0.0.0.0/0"
+      nat_gateway_id = aws_nat_gateway.cloudx_nat_gw.id
+    }
   tags = {
     Name = "private_rt"
   }

@@ -7,18 +7,18 @@ provider "aws" {
 }
 
 #SUBNET GROUP
-resource "aws_db_subnet_group" "ghost" {
-  subnet_ids = [for s in module.network.cloudx_private_db_subnets_id: s]
-}
+#resource "aws_db_subnet_group" "ghost" {
+#  subnet_ids = [for s in module.network.cloudx_private_db_subnets_id: s]
+#}
 
 #DB INSTANCE
 #resource "aws_db_instance" "default" {
 #  allocated_storage    = 20
 #  engine               = "mysql"
-#  engine_version       = "8.0"
+# engine_version       = "8.0"
 #  storage_type         = "gp2"
-# instance_class       = "db.t2.micro"
-# db_name              = "ghost"
+#  instance_class       = "db.t2.micro"
+#  db_name              = "ghost"
 #  username             = "foo"
 #  password             = "foobarbaz"
 #  parameter_group_name = "default.mysql8.0"
@@ -90,10 +90,10 @@ resource "aws_iam_role" "cloudx_policy" {
 EOF
 }
 
-#resource "aws_iam_instance_profile" "cloudx_profile" {
-#  name = "cloudx_profile"
-#  role = aws_iam_role.cloudx_policy.name
-#}
+resource "aws_iam_instance_profile" "cloudx_profile" {
+  name = "cloudx_profile"
+  role = aws_iam_role.cloudx_policy.name
+}
 
 resource "aws_iam_role_policy" "cloudx_role_policy" {
   name = "cloudx_role_policy"
@@ -159,4 +159,55 @@ resource "aws_lb_listener" "cloudx_lb_listener" {
       }
    }
  }
+}
+###LAUNC TEMPLATE
+data "aws_ami" "latest_amazon_linux" {
+  owners      = ["amazon"]
+  most_recent = true
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
+  }
+}
+
+resource "aws_launch_template" "ghost" {
+  name = "ghost"
+
+  iam_instance_profile {
+    name = "cloudx_profile"
+  }
+
+  image_id = data.aws_ami.latest_amazon_linux.id
+
+  instance_initiated_shutdown_behavior = "terminate"
+
+  instance_type = "t2.micro"
+
+  key_name  = "333"
+
+  vpc_security_group_ids = [module.network.cloudx_sg_ec2pool_id]
+
+  user_data = filebase64("userdata.sh")
+}
+
+###AUTO-SCALING
+
+resource "aws_autoscaling_group" "ghost_ec2_pool" {
+  name                      = "ghost_ec2_pool"
+  max_size                  = 2
+  min_size                  = 1
+  vpc_zone_identifier       = [for s in module.network.cloudx_private_subnets_id: s]
+  
+  launch_template {
+    id      = aws_launch_template.ghost.id
+    version = "$Latest"
+  }
+
+ # initial_lifecycle_hook {
+ #   name                 = "ghost_ec2_pool"
+ #   default_result       = "CONTINUE"
+ #   heartbeat_timeout    = 2000
+ #   lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
+ # }
+
 }
