@@ -237,7 +237,7 @@ data "aws_instances" "test" {
   depends_on = [aws_autoscaling_group.ghost_ec2_pool]
 }
 resource "aws_lb_target_group_attachment" "test" {
-  count            = length(data.aws_instances.test.ids)
+  count            = 1
   target_group_arn = aws_lb_target_group.ghost-ec2.arn
   target_id        = data.aws_instances.test.ids[count.index]
   port             = 2368
