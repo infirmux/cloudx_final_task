@@ -18,6 +18,7 @@ resource "aws_vpc" "cloudx_vpc" {
   enable_dns_support = true
   tags = {
     Name = "cloudx"
+    Project = "cloudx_final_task"
   }
 }
 
@@ -31,6 +32,7 @@ resource "aws_subnet" "cloudx_public_subnets" {
   availability_zone       = element(data.aws_availability_zones.available.names, count.index)
   tags = {
     Name = join(" in ", ["pubic", element(data.aws_availability_zones.available.names, count.index)])
+    Project = "cloudx_final_task"
   }
 }
 
@@ -42,6 +44,7 @@ resource "aws_subnet" "cloudx_private_subnets" {
   availability_zone = element(data.aws_availability_zones.available.names, count.index)
   tags = {
     Name = join(" in ", ["private", element(data.aws_availability_zones.available.names, count.index)])
+    Project = "cloudx_final_task"
   }
 }
 
@@ -53,6 +56,7 @@ resource "aws_subnet" "cloudx_private_db_subnets" {
   availability_zone = element(data.aws_availability_zones.available.names, count.index)
   tags = {
     Name = join(" in ", ["private_db", element(data.aws_availability_zones.available.names, count.index)])
+    Project = "cloudx_final_task"
   }
 }
 
@@ -61,6 +65,20 @@ resource "aws_internet_gateway" "cloudx_igw" {
   vpc_id = aws_vpc.cloudx_vpc.id
   tags = {
     Name = "cloudx_igw"
+    Project = "cloudx_final_task"
+  }
+}
+
+#Creating EIP's for NAT
+resource "aws_eip" "cloudx_eip" {
+}
+#Creating NAT gateways for every AZ
+resource "aws_nat_gateway" "cloudx_nat_gw" {
+  allocation_id = aws_eip.cloudx_eip.id
+  subnet_id     = element(aws_subnet.cloudx_public_subnets.*.id, 0)
+  
+  tags = {
+    Project = "cloudx_final_task"
   }
 }
 
@@ -74,6 +92,7 @@ resource "aws_route_table" "public_rt" {
   }
   tags = {
     Name = "public_rt"
+    Project = "cloudx_final_task"
   }
 }
 
@@ -87,8 +106,13 @@ resource "aws_route_table_association" "public_rt" {
 #Creating RT to PRIVATE SUBNETS
 resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.cloudx_vpc.id
+    route {
+      cidr_block     = "0.0.0.0/0"
+      nat_gateway_id = aws_nat_gateway.cloudx_nat_gw.id
+    }
   tags = {
     Name = "private_rt"
+    Project = "cloudx_final_task"
   }
 }
 
@@ -102,6 +126,7 @@ resource "aws_route_table_association" "private_rt" {
 ###SECURITY GROUPS###
 ##1.ec2_pool
 resource "aws_security_group" "ec2_pool" {
+  name        = "ec2_pool"
   vpc_id = aws_vpc.cloudx_vpc.id
   ingress {
     from_port   = 22
@@ -130,10 +155,12 @@ resource "aws_security_group" "ec2_pool" {
   tags = {
     Name = "ec2_pool"
     Description = "allows access for ec2 instances"
+    Project = "cloudx_final_task"
   }
 }
 ##2.fargate_pool
 resource "aws_security_group" "fargate_pool" {
+  name        = "fargate_pool"
   vpc_id = aws_vpc.cloudx_vpc.id
   ingress {
     from_port   = 2049
@@ -156,10 +183,12 @@ resource "aws_security_group" "fargate_pool" {
   tags = {
     Name = "fargate_pool"
     Description = "allows access for fargate instances"
+    Project = "cloudx_final_task"
   }
 }
 ##3.mysql
 resource "aws_security_group" "mysql" {
+  name        = "mysql"
   vpc_id = aws_vpc.cloudx_vpc.id
   ingress {
     from_port   = 3306
@@ -176,10 +205,12 @@ resource "aws_security_group" "mysql" {
   tags = {
     Name = "mysql"
     Description = "defines access to ghost db"
+    Project = "cloudx_final_task"
   }
 }
 ##4.efs
 resource "aws_security_group" "efs" {
+  name        = "efs"
   vpc_id = aws_vpc.cloudx_vpc.id
   ingress {
     from_port   = 2049
@@ -202,10 +233,12 @@ resource "aws_security_group" "efs" {
   tags = {
     Name = "efs"
     Description = "defines access to efs mount points"
+    Project = "cloudx_final_task"
   }
 }
 ##5.alb
 resource "aws_security_group" "alb" {
+  name        = "alb"
   vpc_id = aws_vpc.cloudx_vpc.id
   ingress {
     from_port   = 80
@@ -230,11 +263,13 @@ resource "aws_security_group" "alb" {
   tags = {
     Name = "alb"
     Description = "defines access to alb"
+    Project = "cloudx_final_task"
   }
 }
 
 ##6.vpc_endpoint
 resource "aws_security_group" "vpc_endpoint" {
+  name        = "vpc_endpoint"
   vpc_id = aws_vpc.cloudx_vpc.id
   ingress {
     from_port   = 443
@@ -245,5 +280,6 @@ resource "aws_security_group" "vpc_endpoint" {
   tags = {
     Name = "vpc_endpoint"
     Description = "defines access to vpc endpoints"
+    Project = "cloudx_final_task"
   }
 }
