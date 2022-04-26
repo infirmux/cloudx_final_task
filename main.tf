@@ -91,7 +91,8 @@ resource "aws_iam_policy" "ghost_app_policy" {
             "kms:Decrypt",
             "elasticfilesystem:DescribeFileSystems",
             "elasticfilesystem:ClientMount",
-            "elasticfilesystem:ClientWrite"
+            "elasticfilesystem:ClientWrite",
+            "rds:DescribeDBInstances"
         ]
         Effect   = "Allow"
         Resource = "*"
@@ -237,12 +238,13 @@ resource "aws_launch_template" "ghost" {
 resource "aws_autoscaling_group" "ghost_ec2_pool" {
   name                      = "ghost_ec2_pool"
   max_size                  = 3
-  min_size                  = 3
+  min_size                  = 1
   vpc_zone_identifier       = [for s in module.network.cloudx_private_subnets_id: s]
   
   launch_template {
     id      = aws_launch_template.ghost.id
     version = "$Latest"
+  
   }
 
  # initial_lifecycle_hook {

@@ -24,7 +24,7 @@ sudo npm install pm2 -g
 mkdir -p /var/lib/ghost/content
 yum -y install amazon-efs-utils
 mount -t efs -o tls $EFS_ID:/ /var/lib/ghost/content
-
+cd /
 ### Configure and start ghost app
 mkdir ghost
 wget https://registry.npmjs.org/ghost/-/$GHOST_PACKAGE

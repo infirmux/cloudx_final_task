@@ -1,3 +1,4 @@
+
 output "db_subnets" {
-  value = module.network.cloudx_private_db_subnets_id
+  value = aws_lb.cloudx_alb.dns_name
 }
