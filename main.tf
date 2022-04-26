@@ -228,11 +228,6 @@ resource "aws_autoscaling_group" "ghost_ec2_pool" {
   ]
 }
 
-resource "time_sleep" "wait_30_seconds" {
-  depends_on = [aws_autoscaling_group.ghost_ec2_pool]
-  create_duration = "60s"
-}
-
 data "aws_instances" "test" {
   instance_tags = {
     Project = "cloudx_final_task_instance"
@@ -242,8 +237,9 @@ data "aws_instances" "test" {
   depends_on = [aws_autoscaling_group.ghost_ec2_pool]
 }
 resource "aws_lb_target_group_attachment" "test" {
+  count            = length(data.aws_instances.test.ids)
   target_group_arn = aws_lb_target_group.ghost-ec2.arn
-  target_id        = data.aws_instances.test.id
+  target_id        = data.aws_instances.test.ids[count.index]
   port             = 2368
   depends_on = [data.aws_instances.test]
 }
