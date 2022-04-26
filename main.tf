@@ -7,6 +7,18 @@ provider "aws" {
 }
 
 #SUBNET GROUP
+
+resource "aws_ssm_parameter" "secret" {
+  name        = "/ghost/dbpassw"
+  description = "ghost DB pass"
+  type        = "SecureString"
+  value       = var.database_pass
+
+  tags = {
+    Project = "cloudx_final_task"
+  }
+}
+
 resource "aws_db_subnet_group" "ghost" {
   name = "ghost_db_subnet_group"
   subnet_ids = [for s in module.network.cloudx_private_db_subnets_id: s]
@@ -16,6 +28,22 @@ resource "aws_db_subnet_group" "ghost" {
 }
 
 #DB INSTANCE
+resource "aws_db_instance" "ghost" {
+  allocated_storage    = 10
+  storage_type         = "gp2"
+  engine               = "mysql"
+  engine_version       = "5.7.16"
+  instance_class       = "db.t2.micro"
+  db_name              = "gh_db"
+  username             = "gh_user"
+  password             = var.database_pass
+  db_subnet_group_name = aws_db_subnet_group.ghost.id
+  vpc_security_group_ids = [module.network.sg_mysql_vpc_id]
+  parameter_group_name = "default.mysql5.7"
+  skip_final_snapshot = true
+  depends_on = [module.network.sg_mysql_vpc_id]
+}
+
 #resource "aws_db_instance" "default" {
 #  allocated_storage    = 20
 #  engine               = "mysql"
@@ -164,12 +192,12 @@ resource "aws_lb_listener" "cloudx_lb_listener" {
     forward {
       target_group {
         arn    = aws_lb_target_group.ghost-ec2.arn
-        weight = 50
+        weight = 100
       }
 
       target_group {
         arn    = aws_lb_target_group.ghost-fargate.arn
-        weight = 50
+        weight = 0
       }
    }
  }
@@ -208,8 +236,8 @@ resource "aws_launch_template" "ghost" {
 
 resource "aws_autoscaling_group" "ghost_ec2_pool" {
   name                      = "ghost_ec2_pool"
-  max_size                  = 2
-  min_size                  = 1
+  max_size                  = 3
+  min_size                  = 3
   vpc_zone_identifier       = [for s in module.network.cloudx_private_subnets_id: s]
   
   launch_template {
@@ -225,3 +253,23 @@ resource "aws_autoscaling_group" "ghost_ec2_pool" {
  # }
 
 }
+
+
+###ECS
+#resource "aws_ecs_cluster" "ghost" {
+#  name = "ghost"
+#
+#  setting {
+#    name  = "containerInsights"
+#    value = "enabled"
+#  }
+#}
+#ECR
+#resource "aws_ecr_repository" "gost_repo" {
+#  name                 = "gost_repo"
+#  image_tag_mutability = "MUTABLE"
+#
+#  image_scanning_configuration {
+#    scan_on_push = true
+#  }
+#}

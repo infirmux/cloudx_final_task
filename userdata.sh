@@ -1,14 +1,16 @@
 #!/bin/bash -xe
 export HOME="/root"
-SSM_DB_PASSWORD="/gh/db/pass"
+SSM_DB_PASSWORD="/ghost/dbpassw"
 GHOST_PACKAGE="ghost-4.12.1.tgz"
-DB_URL=${db_url_tpl}
+
 DB_USER="gh_user"
 DB_NAME="gh_db"
 
+
 REGION=$(/usr/bin/curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/[a-z]$//')
-DB_PASSWORD=123
-EFS_ID=123
+DB_PASSWORD=$(aws ssm get-parameter --name $SSM_DB_PASSWORD --query Parameter.Value --with-decryption --region $REGION --output text)
+EFS_ID=$(aws efs describe-file-systems --query 'FileSystems[?Name==`ghost_content`].FileSystemId' --region $REGION --output text)
+DB_URL=$(aws rds describe-db-instances --region $REGION --query 'DBInstances[*].Endpoint.Address' --output text)
 
 ### Install pre-reqs
 curl https://bootstrap.pypa.io/get-pip.py -o /tmp/get-pip.py
