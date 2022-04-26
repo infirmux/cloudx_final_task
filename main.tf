@@ -44,30 +44,6 @@ resource "aws_db_instance" "ghost" {
   depends_on = [module.network.sg_mysql_vpc_id]
 }
 
-#resource "aws_db_instance" "default" {
-#  allocated_storage    = 20
-#  engine               = "mysql"
-# engine_version       = "8.0"
-#  storage_type         = "gp2"
-#  instance_class       = "db.t2.micro"
-#  db_name              = "ghost"
-#  username             = "foo"
-#  password             = "foobarbaz"
-#  parameter_group_name = "default.mysql8.0"
-#  skip_final_snapshot  = true
-#  security_group_names = [module.network.sg_mysql_name]
-#  db_subnet_group_name = aws_db_subnet_group.ghost.name
-#}
-
-###SSH KEYPAIR
-#
-#
-#
-#
-#
-#
-#
-
 ###IAM
 #POLICY
 resource "aws_iam_policy" "ghost_app_policy" {
@@ -247,13 +223,15 @@ resource "aws_autoscaling_group" "ghost_ec2_pool" {
   
   }
 
- # initial_lifecycle_hook {
- #   name                 = "ghost_ec2_pool"
- #   default_result       = "CONTINUE"
- #   heartbeat_timeout    = 2000
- #   lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
- # }
-
+  initial_lifecycle_hook {
+    name                 = "ghost_ec2_pool"
+    default_result       = "CONTINUE"
+    heartbeat_timeout    = 2000
+    lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
+  }
+  depends_on = [
+    aws_db_instance.ghost,
+  ]
 }
 
 
