@@ -223,12 +223,6 @@ resource "aws_autoscaling_group" "ghost_ec2_pool" {
   
   }
 
-  initial_lifecycle_hook {
-    name                 = "ghost_ec2_pool"
-    default_result       = "CONTINUE"
-    heartbeat_timeout    = 2000
-    lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
-  }
   depends_on = [
     aws_db_instance.ghost,
   ]

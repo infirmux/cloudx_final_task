@@ -246,25 +246,42 @@ resource "aws_security_group" "alb" {
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+#  egress {
+#    from_port   = 0
+#    to_port     = 0
+#    protocol    = "-1"
 #    security_groups = [aws_security_group.ec2_pool.id]
-    cidr_blocks = [aws_vpc.cloudx_vpc.cidr_block]
-  }
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
+#    cidr_blocks = [aws_vpc.cloudx_vpc.cidr_block]
+#  }
+#  egress {
+#    from_port   = 0
+#    to_port     = 0
+#    protocol    = "-1"
 #    security_groups = [aws_security_group.fargate_pool.id]
-    cidr_blocks = [aws_vpc.cloudx_vpc.cidr_block]
-  }
+#    cidr_blocks = [aws_vpc.cloudx_vpc.cidr_block]
+#  }
   tags = {
     Name = "alb"
     Description = "defines access to alb"
     Project = "cloudx_final_task"
   }
+}
+resource "aws_security_group_rule" "fargate_pool_attach" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.alb.id
+  source_security_group_id = aws_security_group.fargate_pool.id
+}
+
+resource "aws_security_group_rule" "ec2_pool_attach" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  security_group_id = aws_security_group.alb.id
+  source_security_group_id = aws_security_group.ec2_pool.id
 }
 
 ##6.vpc_endpoint
