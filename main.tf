@@ -191,22 +191,22 @@ data "aws_ami" "latest_amazon_linux" {
 
 resource "aws_launch_template" "ghost" {
   name = "ghost"
-
   iam_instance_profile {
     name = "cloudx_profile"
   }
-
   image_id = data.aws_ami.latest_amazon_linux.id
-
   instance_initiated_shutdown_behavior = "terminate"
-
   instance_type = "t2.micro"
-
   key_name  = "333"
-
   vpc_security_group_ids = [module.network.cloudx_sg_ec2pool_id]
-
   user_data = filebase64("userdata.sh")
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Project = "cloudx_final_task_instance"
+    }
+  }
 }
 
 ###AUTO-SCALING
@@ -223,17 +223,26 @@ resource "aws_autoscaling_group" "ghost_ec2_pool" {
   
   }
 
-  initial_lifecycle_hook {
-    name                 = "ghost_ec2_pool"
-    default_result       = "CONTINUE"
-    heartbeat_timeout    = 2000
-    lifecycle_transition = "autoscaling:EC2_INSTANCE_LAUNCHING"
-  }
   depends_on = [
     aws_db_instance.ghost,
   ]
 }
 
+data "aws_instances" "test" {
+  instance_tags = {
+    Project = "cloudx_final_task_instance"
+  }
+  instance_state_names = ["pending", "running"]
+
+  depends_on = [aws_autoscaling_group.ghost_ec2_pool]
+}
+resource "aws_lb_target_group_attachment" "test" {
+  count            = 1
+  target_group_arn = aws_lb_target_group.ghost-ec2.arn
+  target_id        = data.aws_instances.test.ids[count.index]
+  port             = 2368
+  depends_on = [data.aws_instances.test]
+}
 
 ###ECS
 #resource "aws_ecs_cluster" "ghost" {
