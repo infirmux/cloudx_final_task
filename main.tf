@@ -245,25 +245,26 @@ resource "aws_lb_target_group_attachment" "test" {
   port             = 2368
   depends_on = [data.aws_instances.test]
 }
-
+/*
 ###ECS
-#resource "aws_ecs_cluster" "ghost" {
-#  name = "ghost"
-#
-#  setting {
-#    name  = "containerInsights"
-#    value = "enabled"
-#  }
-#}
+resource "aws_ecs_cluster" "ghost" {
+  name = "ghost"
+
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+}
 #ECR
-#resource "aws_ecr_repository" "gost_repo" {
-#  name                 = "gost_repo"
-#  image_tag_mutability = "MUTABLE"
-#
-#  image_scanning_configuration {
-#    scan_on_push = true
-#  }
-#}
+resource "aws_ecr_repository" "gost_repo" {
+  name                 = "gost_repo"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+*/
 ###VPC ENDPOINTS
 resource "aws_vpc_endpoint" "ECS" {
   vpc_id            = module.network.cloudx_vpc_id
