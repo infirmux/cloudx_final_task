@@ -268,7 +268,7 @@ resource "aws_security_group_rule" "fargate_pool_attach" {
   source_security_group_id = aws_security_group.fargate_pool.id
 }
 
-#attaching fargate sg to alb sg
+#attaching ec2 sg to alb sg
 resource "aws_security_group_rule" "ec2_pool_attach" {
   type              = "egress"
   from_port         = 0
