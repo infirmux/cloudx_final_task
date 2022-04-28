@@ -215,7 +215,7 @@ resource "aws_launch_template" "ghost" {
 
 resource "aws_autoscaling_group" "ghost_ec2_pool" {
   name                      = "ghost_ec2_pool"
-  max_size                  = 1
+  max_size                  = 3
   min_size                  = 3
   vpc_zone_identifier       = [for s in module.network.cloudx_private_subnets_id: s]
   
@@ -239,7 +239,7 @@ data "aws_instances" "test" {
   depends_on = [aws_autoscaling_group.ghost_ec2_pool]
 }
 resource "aws_lb_target_group_attachment" "test" {
-  count            = 1
+  count            = 3
   target_group_arn = aws_lb_target_group.ghost-ec2.arn
   target_id        = data.aws_instances.test.ids[count.index]
   port             = 2368
