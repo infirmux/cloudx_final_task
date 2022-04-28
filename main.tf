@@ -266,16 +266,29 @@ resource "aws_ecr_repository" "gost_repo" {
 }
 */
 ###VPC ENDPOINTS
-resource "aws_vpc_endpoint" "ECS" {
+
+
+
+resource "aws_vpc_endpoint" "CloudWatchLogs" {
   vpc_id            = module.network.cloudx_vpc_id
-  service_name      = "com.amazonaws.eu-west-1.ecs"
+  service_name      = "com.amazonaws.eu-west-1.logs"
   vpc_endpoint_type = "Interface"
   subnet_ids        = [for s in module.network.cloudx_private_subnets_id: s]
   private_dns_enabled = true
   security_group_ids = [
     module.network.cloudx_sg_vpc_endpoint_id,
   ]
+}
 
+resource "aws_vpc_endpoint" "ECS" {
+  vpc_id            = module.network.cloudx_vpc_id
+  service_name      = "com.amazonaws.eu-west-1.s3"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [for s in module.network.cloudx_private_subnets_id: s]
+  private_dns_enabled = true
+  security_group_ids = [
+    module.network.cloudx_sg_vpc_endpoint_id,
+  ]
 }
 resource "aws_vpc_endpoint" "ECR" {
   vpc_id            = module.network.cloudx_vpc_id
@@ -286,8 +299,9 @@ resource "aws_vpc_endpoint" "ECR" {
   security_group_ids = [
     module.network.cloudx_sg_vpc_endpoint_id,
   ]
-
 }
+
+
 resource "aws_vpc_endpoint" "EFS" {
   vpc_id            = module.network.cloudx_vpc_id
   service_name      = "com.amazonaws.eu-west-1.elasticfilesystem"
@@ -297,7 +311,6 @@ resource "aws_vpc_endpoint" "EFS" {
   security_group_ids = [
     module.network.cloudx_sg_vpc_endpoint_id,
   ]
-
 }
 resource "aws_vpc_endpoint" "SSM" {
   vpc_id            = module.network.cloudx_vpc_id
@@ -308,6 +321,5 @@ resource "aws_vpc_endpoint" "SSM" {
   security_group_ids = [
     module.network.cloudx_sg_vpc_endpoint_id,
   ]
-
 }
 
