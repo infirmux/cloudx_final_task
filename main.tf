@@ -29,6 +29,7 @@ resource "aws_db_subnet_group" "ghost" {
 
 #DB INSTANCE
 resource "aws_db_instance" "ghost" {
+  identifier_prefix    = "ghost"
   allocated_storage    = 10
   storage_type         = "gp2"
   engine               = "mysql"
@@ -156,6 +157,7 @@ resource "aws_lb_target_group" "ghost-fargate" {
   name     = "ghost-fargate"
   port     = 2368
   protocol = "HTTP"
+  target_type = "ip"
   vpc_id   = module.network.cloudx_vpc_id
 }
 
@@ -214,7 +216,7 @@ resource "aws_launch_template" "ghost" {
 resource "aws_autoscaling_group" "ghost_ec2_pool" {
   name                      = "ghost_ec2_pool"
   max_size                  = 3
-  min_size                  = 1
+  min_size                  = 3
   vpc_zone_identifier       = [for s in module.network.cloudx_private_subnets_id: s]
   
   launch_template {
@@ -237,28 +239,75 @@ data "aws_instances" "test" {
   depends_on = [aws_autoscaling_group.ghost_ec2_pool]
 }
 resource "aws_lb_target_group_attachment" "test" {
-  count            = 1
+  count            = 3
   target_group_arn = aws_lb_target_group.ghost-ec2.arn
   target_id        = data.aws_instances.test.ids[count.index]
   port             = 2368
   depends_on = [data.aws_instances.test]
 }
-
+/*
 ###ECS
-#resource "aws_ecs_cluster" "ghost" {
-#  name = "ghost"
-#
-#  setting {
-#    name  = "containerInsights"
-#    value = "enabled"
-#  }
-#}
+resource "aws_ecs_cluster" "ghost" {
+  name = "ghost"
+
+  setting {
+    name  = "containerInsights"
+    value = "enabled"
+  }
+}
 #ECR
-#resource "aws_ecr_repository" "gost_repo" {
-#  name                 = "gost_repo"
-#  image_tag_mutability = "MUTABLE"
-#
-#  image_scanning_configuration {
-#    scan_on_push = true
-#  }
-#}
+resource "aws_ecr_repository" "gost_repo" {
+  name                 = "gost_repo"
+  image_tag_mutability = "MUTABLE"
+
+  image_scanning_configuration {
+    scan_on_push = true
+  }
+}
+*/
+###VPC ENDPOINTS
+resource "aws_vpc_endpoint" "ECS" {
+  vpc_id            = module.network.cloudx_vpc_id
+  service_name      = "com.amazonaws.eu-west-1.ecs"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [for s in module.network.cloudx_private_subnets_id: s]
+  private_dns_enabled = true
+  security_group_ids = [
+    module.network.cloudx_sg_vpc_endpoint_id,
+  ]
+
+}
+resource "aws_vpc_endpoint" "ECR" {
+  vpc_id            = module.network.cloudx_vpc_id
+  service_name      = "com.amazonaws.eu-west-1.ecr.api"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [for s in module.network.cloudx_private_subnets_id: s]
+  private_dns_enabled = true
+  security_group_ids = [
+    module.network.cloudx_sg_vpc_endpoint_id,
+  ]
+
+}
+resource "aws_vpc_endpoint" "EFS" {
+  vpc_id            = module.network.cloudx_vpc_id
+  service_name      = "com.amazonaws.eu-west-1.elasticfilesystem"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [for s in module.network.cloudx_private_subnets_id: s]
+  private_dns_enabled = true
+  security_group_ids = [
+    module.network.cloudx_sg_vpc_endpoint_id,
+  ]
+
+}
+resource "aws_vpc_endpoint" "SSM" {
+  vpc_id            = module.network.cloudx_vpc_id
+  service_name      = "com.amazonaws.eu-west-1.ssm"
+  vpc_endpoint_type = "Interface"
+  subnet_ids        = [for s in module.network.cloudx_private_subnets_id: s]
+  private_dns_enabled = true
+  security_group_ids = [
+    module.network.cloudx_sg_vpc_endpoint_id,
+  ]
+
+}
+

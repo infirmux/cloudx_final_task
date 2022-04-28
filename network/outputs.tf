@@ -32,6 +32,10 @@ output "cloudx_sg_alb_id" {
   value = aws_security_group.alb.id
 }
 
+output "cloudx_sg_vpc_endpoint_id" {
+  value = aws_security_group.vpc_endpoint.id
+}
+
 output "sg_mysql_vpc_id" {
   value = aws_security_group.mysql.id
 }
